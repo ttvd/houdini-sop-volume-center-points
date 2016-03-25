@@ -108,7 +108,14 @@ SOP_VoxelCenterPoints::cookInputGroups(OP_Context& context, int alone)
 void
 SOP_VoxelCenterPoints::processVolumes(const UT_Array<GEO_PrimVolume*>& volumes, fpreal t)
 {
+    GEO_PrimVolume* first_volume = volumes(0);
+    UT_VoxelArrayReadHandleF volume_handle = first_volume->getVoxelHandle();
 
+    //UT_Vector3 volume_size = first_volume->getVoxelSize();
+
+    int volume_size_x = volume_handle->getXRes();
+    int volume_size_y = volume_handle->getYRes();
+    int volume_size_z = volume_handle->getZRes();
 }
 
 
