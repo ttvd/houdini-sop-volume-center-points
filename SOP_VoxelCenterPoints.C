@@ -25,8 +25,7 @@ SOP_VoxelCenterPoints::myConstructor(OP_Network* network, const char* name, OP_O
 
 
 SOP_VoxelCenterPoints::SOP_VoxelCenterPoints(OP_Network* network, const char* name, OP_Operator* op) :
-    SOP_Node(network, name, op),
-    m_group(nullptr)
+    SOP_Node(network, name, op)
 {
 
 }
@@ -41,6 +40,9 @@ SOP_VoxelCenterPoints::~SOP_VoxelCenterPoints()
 OP_ERROR
 SOP_VoxelCenterPoints::cookMySop(OP_Context& context)
 {
+    fpreal t = context.getTime();
+    UT_Interrupt* boss = UTgetInterrupt();
+
     if(lockInputs(context) >= UT_ERROR_ABORT)
     {
         return error();
@@ -48,19 +50,13 @@ SOP_VoxelCenterPoints::cookMySop(OP_Context& context)
 
     duplicateSource(0, context);
 
-    if(cookInputGroups(context) >= UT_ERROR_ABORT)
-    {
-        unlockInputs();
-        return error();
-    }
-
+    const GU_Detail* input_gdp = inputGeo(0);
+    const GA_PrimitiveGroup* prim_group = nullptr;
     GEO_Primitive* prim = nullptr;
-    fpreal t = context.getTime();
-    UT_Interrupt* boss = UTgetInterrupt();
 
     UT_Array<GEO_PrimVolume*> volumes;
 
-    GA_FOR_ALL_OPT_GROUP_PRIMITIVES(gdp, m_group, prim)
+    GA_FOR_ALL_OPT_GROUP_PRIMITIVES(input_gdp, prim_group, prim)
     {
         if(boss->opInterrupt())
         {
@@ -95,13 +91,6 @@ const char*
 SOP_VoxelCenterPoints::inputLabel(unsigned int idx) const
 {
     return "Voxels to Center Points";
-}
-
-
-OP_ERROR
-SOP_VoxelCenterPoints::cookInputGroups(OP_Context& context, int alone)
-{
-    return cookInputPrimitiveGroups(context, m_group, m_detail_group_pair, alone);
 }
 
 
