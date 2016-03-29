@@ -48,8 +48,6 @@ SOP_VoxelCenterPoints::cookMySop(OP_Context& context)
         return error();
     }
 
-    duplicateSource(0, context);
-
     const GU_Detail* input_gdp = inputGeo(0);
     const GA_PrimitiveGroup* prim_group = nullptr;
     GEO_Primitive* prim = nullptr;
@@ -72,6 +70,7 @@ SOP_VoxelCenterPoints::cookMySop(OP_Context& context)
 
     if(volumes.entries() > 0)
     {
+        gdp->clearAndDestroy();
         processVolumes(volumes, t);
     }
     else
@@ -82,7 +81,6 @@ SOP_VoxelCenterPoints::cookMySop(OP_Context& context)
     }
 
     unlockInputs();
-
     return error();
 }
 
@@ -99,12 +97,43 @@ SOP_VoxelCenterPoints::processVolumes(const UT_Array<GEO_PrimVolume*>& volumes, 
 {
     GEO_PrimVolume* first_volume = volumes(0);
     UT_VoxelArrayReadHandleF volume_handle = first_volume->getVoxelHandle();
+    UT_VoxelArrayF* volume_data = (UT_VoxelArrayF*) &*volume_handle;
 
     //UT_Vector3 volume_size = first_volume->getVoxelSize();
 
-    int volume_size_x = volume_handle->getXRes();
-    int volume_size_y = volume_handle->getYRes();
-    int volume_size_z = volume_handle->getZRes();
+    int volume_size_x = volume_data->getXRes();
+    int volume_size_y = volume_data->getYRes();
+    int volume_size_z = volume_data->getZRes();
+
+    float boundary_x = -volume_size_x / 2.0f;
+    float boundary_y = -volume_size_y / 2.0f;
+    float boundary_z = -volume_size_z / 2.0f;
+
+    float step_x = 0.5f;
+    float step_y = 0.5f;
+    float step_z = 0.5f;
+
+    for(int idx_z = 0; idx_z < volume_size_z; ++idx_z)
+    {
+        for(int idx_y = 0; idx_y < volume_size_y; ++idx_y)
+        {
+            for(int idx_x = 0; idx_x < volume_size_x; ++idx_x)
+            {
+                float value = (*volume_data)(idx_x, idx_y, idx_z);
+                if(value > 0.0f)
+                {
+                    //-1.5 | -1.0 | -0.5 | 0 | 0.5 | 1.0 | 1.5
+
+                    UT_Vector3 point_data(boundary_x + step_x + idx_x,
+                        boundary_y + step_y + idx_y,
+                        boundary_z + step_z + idx_z);
+
+                    GA_Offset point_offset = gdp->appendPointOffset();
+                    gdp->setPos3(point_offset, point_data);
+                }
+            }
+        }
+    }
 }
 
 
