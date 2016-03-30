@@ -101,17 +101,26 @@ SOP_VoxelCenterPoints::processVolumes(const UT_Array<GEO_PrimVolume*>& volumes, 
 
     //UT_Vector3 volume_size = first_volume->getVoxelSize();
 
+    const UT_Matrix3& volume_transform = first_volume->getTransform();
+
+    UT_Matrix3 volume_transform_temp(volume_transform);
+    UT_Vector3F volume_scale;
+    volume_transform_temp.extractScales(volume_scale);
+
+    //UT_Matrix3 volume_rotation;
+    //volume_transform.extractRotation(volume_rotation);
+
     int volume_size_x = volume_data->getXRes();
     int volume_size_y = volume_data->getYRes();
     int volume_size_z = volume_data->getZRes();
 
-    float boundary_x = -volume_size_x / 2.0f;
-    float boundary_y = -volume_size_y / 2.0f;
-    float boundary_z = -volume_size_z / 2.0f;
+    float boundary_x = -volume_size_x * volume_scale.x() / 2.0f;
+    float boundary_y = -volume_size_y * volume_scale.y() / 2.0f;
+    float boundary_z = -volume_size_z * volume_scale.z() / 2.0f;
 
-    float step_x = 0.5f;
-    float step_y = 0.5f;
-    float step_z = 0.5f;
+    float step_x = 0.5f * volume_scale.x();
+    float step_y = 0.5f * volume_scale.y();
+    float step_z = 0.5f * volume_scale.z();
 
     for(int idx_z = 0; idx_z < volume_size_z; ++idx_z)
     {
@@ -122,11 +131,13 @@ SOP_VoxelCenterPoints::processVolumes(const UT_Array<GEO_PrimVolume*>& volumes, 
                 float value = (*volume_data)(idx_x, idx_y, idx_z);
                 if(value > 0.0f)
                 {
-                    //-1.5 | -1.0 | -0.5 | 0 | 0.5 | 1.0 | 1.5
+                    UT_Vector3 point_data(
+                        boundary_x + step_x + idx_x * volume_scale.x(),
+                        boundary_y + step_y + idx_y * volume_scale.y(),
+                        boundary_z + step_z + idx_z * volume_scale.z());
 
-                    UT_Vector3 point_data(boundary_x + step_x + idx_x,
-                        boundary_y + step_y + idx_y,
-                        boundary_z + step_z + idx_z);
+                    //point_data *= volume_transform_temp;
+                    //point_data *= volume_rotation;
 
                     GA_Offset point_offset = gdp->appendPointOffset();
                     gdp->setPos3(point_offset, point_data);
@@ -134,6 +145,8 @@ SOP_VoxelCenterPoints::processVolumes(const UT_Array<GEO_PrimVolume*>& volumes, 
             }
         }
     }
+
+    //gdp->setTransform(volume_transform);
 }
 
 
