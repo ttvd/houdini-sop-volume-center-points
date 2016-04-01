@@ -99,14 +99,9 @@ SOP_VoxelCenterPoints::processVolumes(const UT_Array<GEO_PrimVolume*>& volumes, 
     UT_VoxelArrayReadHandleF volume_handle = first_volume->getVoxelHandle();
     UT_VoxelArrayF* volume_data = (UT_VoxelArrayF*) &*volume_handle;
 
-    //const UT_Matrix3& volume_transform = first_volume->getTransform();
-
-    //UT_Matrix3 volume_transform_temp(volume_transform);
-    //UT_Vector3F volume_scale;
-    //volume_transform_temp.extractScales(volume_scale);
-
-    //UT_Matrix3 volume_rotation;
-    //volume_transform.extractRotation(volume_rotation);
+    UT_Matrix3 volume_transform = first_volume->getTransform();
+    UT_Vector3F volume_scales;
+    volume_transform.extractScales(volume_scales);
 
     UT_Vector3 voxel_size = first_volume->getVoxelSize();
     UT_Vector3 voxel_half_size(voxel_size / 2.0f);
@@ -135,14 +130,14 @@ SOP_VoxelCenterPoints::processVolumes(const UT_Array<GEO_PrimVolume*>& volumes, 
                         volume_corner.y() + idx_y * voxel_size.y() + voxel_half_size.y(),
                         volume_corner.z() + idx_z * voxel_size.z() + voxel_half_size.z());
 
+                    point_data *= volume_transform;
+
                     GA_Offset point_offset = gdp->appendPointOffset();
                     gdp->setPos3(point_offset, point_data);
                 }
             }
         }
     }
-
-    //gdp->setTransform(volume_transform);
 }
 
 
