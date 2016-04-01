@@ -1,4 +1,4 @@
-# houdini-geo-vox
+# houdini-sop-voxel-center
 
 [Houdini](http://www.sidefx.com/index.php) SOP node which generates a center point for each voxel in a volume.
 
