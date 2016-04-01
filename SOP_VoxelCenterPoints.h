@@ -12,6 +12,10 @@ class SOP_API SOP_VoxelCenterPoints : public SOP_Node
         static OP_Node* myConstructor(OP_Network* network, const char* name, OP_Operator* op);
         static PRM_Template myTemplateList[];
 
+    public:
+
+        virtual bool updateParmsFlags();
+
     protected:
 
         SOP_VoxelCenterPoints(OP_Network* network, const char* name, OP_Operator* op);
@@ -30,4 +34,5 @@ class SOP_API SOP_VoxelCenterPoints : public SOP_Node
 
         bool maintainVolumeTransform(fpreal t) const;
         bool createPointValueAttribute(fpreal t) const;
+        bool overrideAttributeName(fpreal t) const;
 };
