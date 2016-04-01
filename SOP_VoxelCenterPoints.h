@@ -24,7 +24,7 @@ class SOP_API SOP_VoxelCenterPoints : public SOP_Node
 
     protected:
 
-        void processVolumes(const UT_Array<GEO_PrimVolume*>& volumes, fpreal t);
+        void processVolumes(const GU_Detail* input_detail, const UT_Array<GEO_PrimVolume*>& volumes, fpreal t);
 
     protected:
 

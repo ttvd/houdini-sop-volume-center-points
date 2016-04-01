@@ -10,7 +10,7 @@
 #include <GU/GU_Detail.h>
 #include <GU/GU_PrimVolume.h>
 
-
+#define SOP_VOXELCENTERPOINTS_DEFAULT_ATTRIBUTE_NAME "vsp_value"
 #define SOP_VOXELCENTERPOINTS_MAINTAIN_VOLUME_TRANSFORM "vsp_maintainvolumetransform"
 #define SOP_VOXELCENTERPOINTS_CREATE_POINT_VALUE_ATTRIBUTE "vsp_createpointvalueattribute"
 
@@ -83,7 +83,7 @@ SOP_VoxelCenterPoints::cookMySop(OP_Context& context)
     if(volumes.entries() > 0)
     {
         gdp->clearAndDestroy();
-        processVolumes(volumes, t);
+        processVolumes(input_gdp, volumes, t);
     }
     else
     {
@@ -105,17 +105,29 @@ SOP_VoxelCenterPoints::inputLabel(unsigned int idx) const
 
 
 void
-SOP_VoxelCenterPoints::processVolumes(const UT_Array<GEO_PrimVolume*>& volumes, fpreal t)
+SOP_VoxelCenterPoints::processVolumes(const GU_Detail* input_detail, const UT_Array<GEO_PrimVolume*>& volumes, fpreal t)
 {
     GEO_PrimVolume* first_volume = volumes(0);
     UT_VoxelArrayReadHandleF volume_handle = first_volume->getVoxelHandle();
     UT_VoxelArrayF* volume_data = (UT_VoxelArrayF*) &*volume_handle;
 
+    GA_ROHandleS attr_first_volume_name = GA_ROHandleS(input_detail->findPrimitiveAttribute("name"));
+    UT_String first_volume_name;
+    if(attr_first_volume_name.isValid())
+    {
+        first_volume_name = attr_first_volume_name.get(first_volume->getMapOffset());
+    }
+
+    if(!first_volume_name)
+    {
+        first_volume_name = SOP_VOXELCENTERPOINTS_DEFAULT_ATTRIBUTE_NAME;
+    }
+
     bool keep_transform = maintainVolumeTransform(t);
     bool create_attribute = createPointValueAttribute(t);
 
     UT_Matrix3 volume_transform = first_volume->getTransform();
-    UT_Vector3F volume_scales;
+    UT_Vector3F volume_scales(1.0f, 1.0f, 1.0f);
     volume_transform.extractScales(volume_scales);
 
     UT_Vector3 voxel_size(1.0f, 1.0f, 1.0f);
@@ -130,11 +142,22 @@ SOP_VoxelCenterPoints::processVolumes(const UT_Array<GEO_PrimVolume*>& volumes, 
         voxel_size.y() < SYS_FTOLERANCE ||
         voxel_size.z() < SYS_FTOLERANCE)
     {
+        addWarning(SOP_MESSAGE, "Zero voxel size detected.");
         return;
     }
 
     UT_Vector3 volume_size(volume_data->getXRes(), volume_data->getYRes(), volume_data->getZRes());
     UT_Vector3 volume_corner(-volume_size * voxel_half_size);
+
+    GA_RWHandleF attr_point_value;
+    if(create_attribute)
+    {
+        attr_point_value = GA_RWHandleF(gdp->findFloatTuple(GA_ATTRIB_POINT, first_volume_name, 1));
+        if(!attr_point_value.isValid())
+        {
+            attr_point_value.bind(gdp->addFloatTuple(GA_ATTRIB_POINT, first_volume_name, 1));
+        }
+    }
 
     for(int idx_z = 0; idx_z < volume_size.z(); ++idx_z)
     {
@@ -142,7 +165,8 @@ SOP_VoxelCenterPoints::processVolumes(const UT_Array<GEO_PrimVolume*>& volumes, 
         {
             for(int idx_x = 0; idx_x < volume_size.x(); ++idx_x)
             {
-                float value = (*volume_data)(idx_x, idx_y, idx_z);
+                //float value = (*volume_data)(idx_x, idx_y, idx_z);
+                float value = volume_handle->getValue(idx_x, idx_y, idx_z);
                 if(value > 0.0f)
                 {
                     UT_Vector3 point_data(
@@ -157,6 +181,11 @@ SOP_VoxelCenterPoints::processVolumes(const UT_Array<GEO_PrimVolume*>& volumes, 
 
                     GA_Offset point_offset = gdp->appendPointOffset();
                     gdp->setPos3(point_offset, point_data);
+
+                    if(create_attribute && attr_point_value.isValid())
+                    {
+                        attr_point_value.set(point_offset, value);
+                    }
                 }
             }
         }
