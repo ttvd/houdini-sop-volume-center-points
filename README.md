@@ -1,8 +1,8 @@
-# houdini-sop-voxel-center
+# houdini-sop-voxel-center-points
 
 [Houdini](http://www.sidefx.com/index.php) SOP node which generates a center point for each voxel in a volume.
 
-![houdini-sop-voxel-center screenshot](http://i.imgur.com/4oS43vh.png)
+![houdini-sop-voxel-center-points screenshot](http://i.imgur.com/4oS43vh.png)
 
 ## Binaries, Houdini 15
 * Mac OS X - Todo.
