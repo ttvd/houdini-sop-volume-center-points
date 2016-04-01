@@ -140,6 +140,7 @@ set(HOUDINI_SOPVOXELCENTERPOINTS_LIBS
     HoudiniPRM
     HoudiniOP2
     boost_system
+    tbb
 )
 
 add_definitions(
