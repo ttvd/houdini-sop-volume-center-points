@@ -99,45 +99,41 @@ SOP_VoxelCenterPoints::processVolumes(const UT_Array<GEO_PrimVolume*>& volumes, 
     UT_VoxelArrayReadHandleF volume_handle = first_volume->getVoxelHandle();
     UT_VoxelArrayF* volume_data = (UT_VoxelArrayF*) &*volume_handle;
 
-    //UT_Vector3 volume_size = first_volume->getVoxelSize();
+    //const UT_Matrix3& volume_transform = first_volume->getTransform();
 
-    const UT_Matrix3& volume_transform = first_volume->getTransform();
-
-    UT_Matrix3 volume_transform_temp(volume_transform);
-    UT_Vector3F volume_scale;
-    volume_transform_temp.extractScales(volume_scale);
+    //UT_Matrix3 volume_transform_temp(volume_transform);
+    //UT_Vector3F volume_scale;
+    //volume_transform_temp.extractScales(volume_scale);
 
     //UT_Matrix3 volume_rotation;
     //volume_transform.extractRotation(volume_rotation);
 
-    int volume_size_x = volume_data->getXRes();
-    int volume_size_y = volume_data->getYRes();
-    int volume_size_z = volume_data->getZRes();
+    UT_Vector3 voxel_size = first_volume->getVoxelSize();
+    UT_Vector3 voxel_half_size(voxel_size / 2.0f);
 
-    float boundary_x = -volume_size_x * volume_scale.x() / 2.0f;
-    float boundary_y = -volume_size_y * volume_scale.y() / 2.0f;
-    float boundary_z = -volume_size_z * volume_scale.z() / 2.0f;
-
-    float step_x = 0.5f * volume_scale.x();
-    float step_y = 0.5f * volume_scale.y();
-    float step_z = 0.5f * volume_scale.z();
-
-    for(int idx_z = 0; idx_z < volume_size_z; ++idx_z)
+    if(voxel_size.x() < SYS_FTOLERANCE ||
+        voxel_size.y() < SYS_FTOLERANCE ||
+        voxel_size.z() < SYS_FTOLERANCE)
     {
-        for(int idx_y = 0; idx_y < volume_size_y; ++idx_y)
+        return;
+    }
+
+    UT_Vector3 volume_size(volume_data->getXRes(), volume_data->getYRes(), volume_data->getZRes());
+    UT_Vector3 volume_corner(-volume_size * voxel_half_size);
+
+    for(int idx_z = 0; idx_z < volume_size.z(); ++idx_z)
+    {
+        for(int idx_y = 0; idx_y < volume_size.y(); ++idx_y)
         {
-            for(int idx_x = 0; idx_x < volume_size_x; ++idx_x)
+            for(int idx_x = 0; idx_x < volume_size.x(); ++idx_x)
             {
                 float value = (*volume_data)(idx_x, idx_y, idx_z);
                 if(value > 0.0f)
                 {
                     UT_Vector3 point_data(
-                        boundary_x + step_x + idx_x * volume_scale.x(),
-                        boundary_y + step_y + idx_y * volume_scale.y(),
-                        boundary_z + step_z + idx_z * volume_scale.z());
-
-                    //point_data *= volume_transform_temp;
-                    //point_data *= volume_rotation;
+                        volume_corner.x() + idx_x * voxel_size.x() + voxel_half_size.x(),
+                        volume_corner.y() + idx_y * voxel_size.y() + voxel_half_size.y(),
+                        volume_corner.z() + idx_z * voxel_size.z() + voxel_half_size.z());
 
                     GA_Offset point_offset = gdp->appendPointOffset();
                     gdp->setPos3(point_offset, point_data);
