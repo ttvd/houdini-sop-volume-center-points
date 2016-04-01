@@ -25,4 +25,9 @@ class SOP_API SOP_VoxelCenterPoints : public SOP_Node
     protected:
 
         void processVolumes(const UT_Array<GEO_PrimVolume*>& volumes, fpreal t);
+
+    protected:
+
+        bool maintainVolumeTransform(fpreal t) const;
+        bool createPointValueAttribute(fpreal t) const;
 };

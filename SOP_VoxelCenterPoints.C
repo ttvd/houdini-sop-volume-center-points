@@ -11,8 +11,20 @@
 #include <GU/GU_PrimVolume.h>
 
 
+#define SOP_VOXELCENTERPOINTS_MAINTAIN_VOLUME_TRANSFORM "vsp_maintainvolumetransform"
+#define SOP_VOXELCENTERPOINTS_CREATE_POINT_VALUE_ATTRIBUTE "vsp_createpointvalueattribute"
+
+static PRM_Name s_name_maintain_volume_transform(SOP_VOXELCENTERPOINTS_MAINTAIN_VOLUME_TRANSFORM, "Maintain Volume Transform");
+static PRM_Name s_name_create_point_value_attribute(SOP_VOXELCENTERPOINTS_CREATE_POINT_VALUE_ATTRIBUTE, "Create Point Value Attribute");
+
+static PRM_Default s_default_maintain_volume_transform(true);
+static PRM_Default s_default_create_point_value_attribute(true);
+
+
 PRM_Template
 SOP_VoxelCenterPoints::myTemplateList[] = {
+    PRM_Template(PRM_TOGGLE, 1, &s_name_maintain_volume_transform, &s_default_maintain_volume_transform),
+    PRM_Template(PRM_TOGGLE, 1, &s_name_create_point_value_attribute, &s_default_create_point_value_attribute),
     PRM_Template()
 };
 
@@ -99,11 +111,19 @@ SOP_VoxelCenterPoints::processVolumes(const UT_Array<GEO_PrimVolume*>& volumes, 
     UT_VoxelArrayReadHandleF volume_handle = first_volume->getVoxelHandle();
     UT_VoxelArrayF* volume_data = (UT_VoxelArrayF*) &*volume_handle;
 
+    bool keep_transform = maintainVolumeTransform(t);
+    bool create_attribute = createPointValueAttribute(t);
+
     UT_Matrix3 volume_transform = first_volume->getTransform();
     UT_Vector3F volume_scales;
     volume_transform.extractScales(volume_scales);
 
-    UT_Vector3 voxel_size = first_volume->getVoxelSize();
+    UT_Vector3 voxel_size(1.0f, 1.0f, 1.0f);
+    if(keep_transform)
+    {
+        voxel_size = first_volume->getVoxelSize();
+    }
+
     UT_Vector3 voxel_half_size(voxel_size / 2.0f);
 
     if(voxel_size.x() < SYS_FTOLERANCE ||
@@ -130,7 +150,10 @@ SOP_VoxelCenterPoints::processVolumes(const UT_Array<GEO_PrimVolume*>& volumes, 
                         volume_corner.y() + idx_y * voxel_size.y() + voxel_half_size.y(),
                         volume_corner.z() + idx_z * voxel_size.z() + voxel_half_size.z());
 
-                    point_data *= volume_transform;
+                    if(keep_transform)
+                    {
+                        point_data *= volume_transform;
+                    }
 
                     GA_Offset point_offset = gdp->appendPointOffset();
                     gdp->setPos3(point_offset, point_data);
@@ -138,6 +161,20 @@ SOP_VoxelCenterPoints::processVolumes(const UT_Array<GEO_PrimVolume*>& volumes, 
             }
         }
     }
+}
+
+
+bool
+SOP_VoxelCenterPoints::maintainVolumeTransform(fpreal t) const
+{
+    return evalInt(SOP_VOXELCENTERPOINTS_MAINTAIN_VOLUME_TRANSFORM, 0, t);
+}
+
+
+bool
+SOP_VoxelCenterPoints::createPointValueAttribute(fpreal t) const
+{
+    return evalInt(SOP_VOXELCENTERPOINTS_CREATE_POINT_VALUE_ATTRIBUTE, 0, t);
 }
 
 
