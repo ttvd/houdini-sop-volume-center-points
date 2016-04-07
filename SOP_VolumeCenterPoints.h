@@ -5,7 +5,7 @@
 
 class GEO_PrimVolume;
 
-class SOP_API SOP_VoxelCenterPoints : public SOP_Node
+class SOP_API SOP_VolumeCenterPoints : public SOP_Node
 {
     public:
 
@@ -18,8 +18,8 @@ class SOP_API SOP_VoxelCenterPoints : public SOP_Node
 
     protected:
 
-        SOP_VoxelCenterPoints(OP_Network* network, const char* name, OP_Operator* op);
-        virtual ~SOP_VoxelCenterPoints();
+        SOP_VolumeCenterPoints(OP_Network* network, const char* name, OP_Operator* op);
+        virtual ~SOP_VolumeCenterPoints();
 
     protected:
 

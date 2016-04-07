@@ -1,8 +1,8 @@
-# houdini-sop-voxel-center-points
+# houdini-sop-volume-center-points
 
 [Houdini](http://www.sidefx.com/index.php) SOP node which generates a center point for each voxel in a volume.
 
-![houdini-sop-voxel-center-points screenshot](http://i.imgur.com/4oS43vh.png)
+![houdini-sop-volume-center-points](http://i.imgur.com/4oS43vh.png)
 
 ## Binaries, Houdini 15
 * Mac OS X - Todo.
@@ -15,13 +15,13 @@
 * Define HOUDINI_VERSION env variable to be the version of Houdini 15 you wish to build against (for example "15.0.313").
 * Alternatively, you can have HFS env variable defined (set when you source houdini_setup).
 * Generate build files from CMake for your favorite build system.
-* Build the SOP Houdini dso (SOP_VoxelCenterPoints.dylib or SOP_VoxelCenterPoints.dll).
+* Build the SOP Houdini dso (SOP_VolumeCenterPoints.dylib or SOP_VolumeCenterPoints.dll).
 * Place the dso in the appropriate Houdini dso folder.
   * On OS X this would be /Users/your_username/Library/Preferences/houdini/15.0/dso/
 
 ## Usage
 
-* Place Voxel Center Points SOP in your SOP network.
+* Place Volume Center Points SOP in your SOP network.
 * Use any volume as an input. For each non-zero value voxel a point will be generated.
 * Parameters are:
     * Maintain Volume Transform - input volume transform will be kept when generating points.)
