@@ -5,8 +5,8 @@
 ![houdini-sop-volume-center-points](http://i.imgur.com/4oS43vh.png)
 
 ## Binaries, Houdini 15
-* [Mac OS X, Houdini 15.0.434](https://github.com/ttvd/houdini-sop-volume-center-points/releases/download/1.0/houdini.sop.volume.center.points.15.0.434.osx.tar.gz)
-* [Windows, Houdini 15.0.440](https://github.com/ttvd/houdini-sop-volume-center-points/releases/download/1.0/houdini.sop.volume.center.points.15.0.440.win.rar)
+* [Mac OS X, Houdini 15.0.434](https://github.com/ttvd/houdini-sop-volume-center-points/releases/download/1.0.1/houdini.sop.volume.center.points.15.0.434.osx.tar.gz)
+* [Windows, Houdini 15.0.440](https://github.com/ttvd/houdini-sop-volume-center-points/releases/download/1.0.1/houdini.sop.volume.center.points.15.0.440.win.rar)
 
 ## Building
 
