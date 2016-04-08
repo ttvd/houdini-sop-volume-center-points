@@ -13,7 +13,9 @@ if(COMPILER_SUPPORTS_CXX11)
 elseif(COMPILER_SUPPORTS_CXX0X)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 else()
-    message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
+    if(NOT WIN32)
+		message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
+	endif ()
 endif()
 
 # Function to extract Houdini version from a Version file.
@@ -73,7 +75,8 @@ if(APPLE)
     # OS X specific definitions.
     add_definitions(
         -DVERSION=\"${HOUDINI_SOPVOLUMECENTERPOINTS_VERSION_FULL}\"
-
+		-DENABLE_THREADS
+		-DUSE_PTHREADS
         -DMBSD_INTEL
         -DMBSD_COCOA
         -DMBSD
@@ -92,6 +95,75 @@ if(APPLE)
     string(REPLACE "-Wl,-headerpad_max_install_names" "" CMAKE_SHARED_MODULE_CREATE_CXX_FLAGS "${CMAKE_SHARED_MODULE_CREATE_CXX_FLAGS}")
     set(CMAKE_SHARED_MODULE_CREATE_CXX_FLAGS "${CMAKE_SHARED_MODULE_CREATE_CXX_FLAGS} -flat_namespace -undefined suppress -arch x86_64 -fobjc-gc")
 
+	set(HOUDINI_SOPVOLUMECENTERPOINTS_LIBS
+		HoudiniUT
+		HoudiniGEO
+		HoudiniPRM
+		HoudiniOP2
+		boost_system
+		tbb
+		)
+elseif (WIN32)
+	if(DEFINED ENV{HOUDINI_VERSION})
+        set(HOUDINI_SOPVOLUMECENTERPOINTS_VERSION_FULL $ENV{HOUDINI_VERSION})
+        set(HOUDINI_SOPVOLUMECENTERPOINTS_HFS "C:/Program Files/Side Effects Software/Houdini ${HOUDINI_SOPVOLUMECENTERPOINTS_VERSION_FULL}")
+        set(_version_file ${HOUDINI_SOPVOLUMECENTERPOINTS_HFS}/toolkit/include/SYS/SYS_Version.h)
+        if(NOT EXISTS ${_version_file})
+            message(FATAL " Houdini ${HOUDINI_SOPVOLUMECENTERPOINTS_VERSION_FULL} is not installed.")
+        endif()
+    elseif(DEFINED ENV{HFS})
+        set(HOUDINI_SOPVOLUMECENTERPOINTS_HFS $ENV{HFS})
+        extract_houdini_version(${HOUDINI_SOPVOLUMECENTERPOINTS_HFS})
+    else()
+        message(FATAL " Please define either HOUDINI_VERSION or HFS variable.")
+    endif()
+	
+	string(REGEX MATCH "([0-9]+\.[0-9]+)" HOUDINI_SOPVOLUMECENTERPOINTS_VERSION ${HOUDINI_SOPVOLUMECENTERPOINTS_VERSION_FULL})
+    set(HOUDINI_SOPVOLUMECENTERPOINTS_VERSION ${HOUDINI_SOPVOLUMECENTERPOINTS_VERSION})
+
+    # Path to where DSOs are installed for this version.
+    set(HOUDINI_SOPVOLUMECENTERPOINTS_DSO_PATH ${HOUDINI_SOPVOLUMECENTERPOINTS_HFS}/bin)
+
+    set(HOUDINI_SOPVOLUMECENTERPOINTS_INCLUDE_DIRECTORIES
+        ${HOUDINI_SOPVOLUMECENTERPOINTS_HFS}/toolkit/include
+    )
+
+    set(HOUDINI_SOPVOLUMECENTERPOINTS_LINK_DIRECTORIES
+        ${HOUDINI_SOPVOLUMECENTERPOINTS_HFS}/custom/houdini/dsolib
+    )
+	
+	add_definitions(
+        -DVERSION=\"${HOUDINI_SOPVOLUMECENTERPOINTS_VERSION_FULL}\"
+		-DWIN32
+		-DI386
+		-nologo
+		-TP
+		-Zc:forScope
+		-DSWAP_BITFIELDS
+		-D_WIN32_WINNT=0x0502
+		-DNOMINMAX
+		-DSTRICT
+		-DWIN32_LEAN_AND_MEAN
+		-D_USE_MATH_DEFINES
+		-D_CRT_SECURE_NO_DEPRECATE
+		-D_CRT_NONSTDC_NO_DEPRECATE 
+		-D_SCL_SECURE_NO_WARNINGS
+		-DBOOST_ALL_NO_LIB 
+		
+		-wd4355
+		-w14996
+		#-O2
+		-DNDEBUG
+		-MD
+		-EHsc
+		-GR
+		-bigobj
+	)
+	
+	set(HOUDINI_SOPVOLUMECENTERPOINTS_LIBS
+    	${HOUDINI_SOPVOLUMECENTERPOINTS_LINK_DIRECTORIES}/*.a
+		${HOUDINI_SOPVOLUMECENTERPOINTS_LINK_DIRECTORIES}/*.lib
+	)
 else()
     message(FATAL_ERROR "Unsupported platform.")
 endif()
@@ -106,8 +178,6 @@ add_definitions(
     -DFBX_ENABLED=1
     -DOPENCL_ENABLED=1
     -DOPENVDB_ENABLED=1
-    -DENABLE_THREADS
-    -DUSE_PTHREADS
     -D_REENTRANT
     -D_FILE_OFFSET_BITS=64
 )
@@ -132,15 +202,6 @@ set(HOUDINI_SOPVOLUMECENTERPOINTS_INCLUDE
 
 set(HOUDINI_SOPVOLUMECENTERPOINTS_SOURCE
     SOP_VolumeCenterPoints.C
-)
-
-set(HOUDINI_SOPVOLUMECENTERPOINTS_LIBS
-    HoudiniUT
-    HoudiniGEO
-    HoudiniPRM
-    HoudiniOP2
-    boost_system
-    tbb
 )
 
 add_definitions(

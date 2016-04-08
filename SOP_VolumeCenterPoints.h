@@ -5,7 +5,7 @@
 
 class GEO_PrimVolume;
 
-class SOP_API SOP_VolumeCenterPoints : public SOP_Node
+class SOP_VolumeCenterPoints : public SOP_Node
 {
     public:
 
