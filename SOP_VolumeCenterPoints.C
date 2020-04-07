@@ -82,7 +82,7 @@ SOP_VolumeCenterPoints::cookMySop(OP_Context& context)
 
     const GU_Detail* input_gdp = inputGeo(0);
     const GA_PrimitiveGroup* prim_group = nullptr;
-    GEO_Primitive* prim = nullptr;
+    const GEO_Primitive* prim = nullptr;
 
     UT_Array<GEO_PrimVolume*> volumes;
 
